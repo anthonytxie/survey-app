@@ -12,11 +12,18 @@ const userSchema = new Schema({
 userSchema.statics.createOAuthUser = async function(strategy, identifier) {
   switch (strategy) {
     case 'google':
-      const user = await this.findOne({ googleId: identifier });
-      if (!user) {
+      const googleUser = await this.findOne({ googleId: identifier });
+      if (!googleUser) {
         return new User({ googleId: identifier }).save();
       } else {
-        return user;
+        return googleUser;
+      }
+    case 'facebook':
+      const facebookUser = await this.findOne({ facebookId: identifier });
+      if (!facebookUser) {
+        return new User({ facebookId: identifier }).save();
+      } else {
+        return facebookUser;
       }
     default:
       return '';
