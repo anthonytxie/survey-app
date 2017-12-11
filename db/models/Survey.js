@@ -14,6 +14,25 @@ const surveySchema = new Schema({
   _user: { type: Schema.Types.ObjectId, ref: 'User' },
 });
 
+surveySchema.statics.updateRecipientResponse = function(
+  surveyId,
+  email,
+  choice
+) {
+  this.updateOne(
+    {
+      id: surveyId,
+      recipients: {
+        $elemMatch: { email, responded: false },
+      },
+    },
+    {
+      $inc: { [choice]: 1 },
+      $set: { 'recipients.$.responded': true },
+    }
+  );
+};
+
 const Survey = mongoose.model('Surveys', surveySchema);
 
 module.exports = { Survey };
