@@ -48,21 +48,30 @@ surveyRouter.post('/api/surveys/webhook', (req, res) => {
     .map(({ email, url }) => {
       const match = p.test(new URL(url).pathname);
       if (match) {
-        return {
-          email,
-          match: match.surveyId,
-          choice: match.choice,
-        };
+        return { email, surveyId: match.surveyId, choice: match.choice };
       }
     })
     .compact()
-    .uniquBy('email', 'surveyId')
-    .each(event => {
-      Survey.updateRecipientResponse(surveyId, email, choice);
+    .uniqBy('email', 'surveyId')
+    .each(({ surveyId, email, choice }) => {
+      Survey.updateOne(
+        {
+          _id: surveyId,
+          recipients: {
+            $elemMatch: { email: email, responded: false },
+          },
+        },
+        {
+          $inc: { [choice]: 1 },
+          $set: { 'recipients.$.responded': true },
+        }
+      ).exec();
     })
     .value();
+
+  console.log('done');
   // call value at the very end of chain
-  console.log(events);
+  res.send({});
 });
 
 module.exports = surveyRouter;

@@ -14,16 +14,16 @@ const surveySchema = new Schema({
   _user: { type: Schema.Types.ObjectId, ref: 'User' },
 });
 
-surveySchema.statics.updateRecipientResponse = function(
+surveySchema.statics.updateRecipientResponse = async function(
   surveyId,
   email,
   choice
 ) {
-  this.updateOne(
+  const updatedSurvey = await this.findOneAndUpdate(
     {
       id: surveyId,
       recipients: {
-        $elemMatch: { email, responded: false },
+        $elemMatch: { email: email, responded: false },
       },
     },
     {
@@ -31,6 +31,8 @@ surveySchema.statics.updateRecipientResponse = function(
       $set: { 'recipients.$.responded': true },
     }
   );
+
+  return updatedSurvey;
 };
 
 const Survey = mongoose.model('Surveys', surveySchema);
