@@ -19,9 +19,9 @@ surveySchema.statics.updateRecipientResponse = async function(
   email,
   choice
 ) {
-  const updatedSurvey = await this.findOneAndUpdate(
+  const updatedSurvey = await this.updateOne(
     {
-      id: surveyId,
+      _id: surveyId,
       recipients: {
         $elemMatch: { email: email, responded: false },
       },
@@ -29,6 +29,7 @@ surveySchema.statics.updateRecipientResponse = async function(
     {
       $inc: { [choice]: 1 },
       $set: { 'recipients.$.responded': true },
+      lastResponded: new Date(),
     }
   );
 

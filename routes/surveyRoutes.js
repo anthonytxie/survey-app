@@ -9,7 +9,7 @@ const { requireLogin } = require('../middlewares/requireLogin.js');
 const { requireCredits } = require('../middlewares/requireCredits.js');
 const { Survey } = require('../db/models/Survey.js');
 
-surveyRouter.get('/api/surveys', (req, res) => {
+surveyRouter.get('/api/surveys/:surveyId/:choice', (req, res) => {
   res.send('Thanks for voting');
 });
 
@@ -54,18 +54,9 @@ surveyRouter.post('/api/surveys/webhook', (req, res) => {
     .compact()
     .uniqBy('email', 'surveyId')
     .each(({ surveyId, email, choice }) => {
-      Survey.updateOne(
-        {
-          _id: surveyId,
-          recipients: {
-            $elemMatch: { email: email, responded: false },
-          },
-        },
-        {
-          $inc: { [choice]: 1 },
-          $set: { 'recipients.$.responded': true },
-        }
-      ).exec();
+      Survey.updateRecipientResponse(surveyId, email, choice).then(() =>
+        console.log('done')
+      );
     })
     .value();
 
